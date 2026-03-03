@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 9
+names: ['copying', 'exchanging_sheets', 'hidden_communication', 'invigilator', 'no_cheating', 'side_talking', 'suspicious_moving', 'unauthorized_notes', 'using_phone']
+
+roboflow:
+  workspace: projects-bzma1
+  project: real-time-exam-hall-monitoring-wepcc
+  version: 1
+  license: MIT
+  url: https://app.roboflow.com/projects-bzma1/real-time-exam-hall-monitoring-wepcc/1

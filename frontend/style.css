@@ -1,0 +1,44 @@
+body {
+    background: #0b132b;
+    color: white;
+    text-align: center;
+    font-family: Arial;
+}
+
+/* Top buttons */
+.top-controls {
+    margin: 20px;
+}
+
+button {
+    padding: 12px 20px;
+    margin: 10px;
+    background: #00c2ff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* VIDEO AT BOTTOM */
+.video-container {
+    width: 80%;
+    margin: 30px auto;
+    border: 3px solid #00c2ff;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+#videoStream {
+    width: 100%;
+    height: auto;
+}
+
+/* ALERT BOX */
+.alert-box {
+    width: 50%;
+    margin: 20px auto;
+    padding: 15px;
+    border: 2px solid red;
+    border-radius: 10px;
+    font-size: 18px;
+}

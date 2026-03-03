@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exam Monitoring System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Exam Hall Monitoring System</h1>
+
+    <!-- TOP CONTROLS -->
+    <div class="top-controls">
+        <button onclick="startWebcam()">🎥 Live Webcam</button>
+
+        <input type="file" id="videoFile">
+        <button onclick="uploadVideo()">📁 Upload Video</button>
+    </div>
+
+    <!-- MAIN VIDEO DISPLAY (BOTTOM) -->
+    <div class="video-container">
+        <img id="videoStream" />
+    </div>
+
+    <!-- ALERT PANEL -->
+    <div class="alert-box">
+        🚨 Alerts
+        <p id="alertText">No cheating detected</p>
+    </div>
+
+    <audio id="alarmSound" src="alarm.mp3"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

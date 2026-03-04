@@ -4,8 +4,13 @@ from ultralytics import YOLO
 # Load trained model
 model = YOLO("backend/model/best.pt")
 
+import cv2
+from ultralytics import YOLO
+
+model = YOLO("runs/detect/train/weights/best.pt")
+
 def process_frame(frame):
-    results = model(frame, conf=0.5)
+    results = model(frame, conf=0.25)
 
     suspicious = 0
     labels_detected = []
@@ -16,18 +21,18 @@ def process_frame(frame):
             class_name = model.names[cls_id]
 
             x1, y1, x2, y2 = map(int, box.xyxy[0])
-
-            # Draw bounding box
+            #Draw Bounding Box
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
             cv2.putText(frame, class_name, (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
             labels_detected.append(class_name)
 
-            # 🚨 Cheating logic
-            if class_name.lower() != "no_cheating":
+            # 🚨 CHEATING LOGIC
+            if class_name.lower() in ["cheating", "phone", "talking", "looking_left", "looking_right"]:
+             
                 suspicious += 1
-
+    print("Detected:", labels_detected)
     return frame, suspicious, labels_detected
 
 

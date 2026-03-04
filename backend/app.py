@@ -3,55 +3,114 @@ from fastapi.responses import StreamingResponse
 import shutil
 import os
 
-from backend.utils.detector import generate_webcam_stream, generate_video_stream
+from backend.utils.detector import process_frame
+from fastapi.middleware.cors import CORSMiddleware
+
+import cv2
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CHEATING_THRESHOLD = 3
 
-# Global state
+# GLOBAL STATE
 alert_status = {
     "alert": False,
     "count": 0
 }
 
+# 🎥 PROCESS VIDEO STREAM
+def generate_stream(source):
 
-@app.get("/")
-def home():
-    return {"message": "Exam Monitoring Backend Running"}
+    if source == "webcam":
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    else:
+        cap = cv2.VideoCapture(source)
+
+    suspicious_count = 0
+
+    while True:
+        success, frame = cap.read()
+        if not success:
+            break
+
+        frame, suspicious, labels = process_frame(frame)
+
+        if suspicious > 0:
+            suspicious_count += 1
+
+        # 🚨 ALERT LOGIC
+        if suspicious_count > CHEATING_THRESHOLD:
+            alert_status["alert"] = True
+            alert_status["count"] = suspicious_count
+        else:
+            alert_status["alert"] = False
+
+        # Encode frame
+        _, buffer = cv2.imencode('.jpg', frame)
+        frame_bytes = buffer.tobytes()
+
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
+    cap.release()
 
 
-# 🎥 LIVE WEBCAM STREAM
+# 🎥 LIVE WEBCAM
 @app.get("/webcam")
-def webcam_stream():
-    return StreamingResponse(generate_webcam_stream(),
-                             media_type="multipart/x-mixed-replace; boundary=frame")
+def webcam():
+    return StreamingResponse(generate_stream("webcam"),
+        media_type="multipart/x-mixed-replace; boundary=frame")
 
 
-# 📂 UPLOAD VIDEO
-@app.post("/upload")
-def upload_video(file: UploadFile = File(...)):
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    return {"video_path": file.filename}
+from fastapi.responses import StreamingResponse
+import os
 
 
-# 🎥 STREAM UPLOADED VIDEO
-@app.get("/video/{filename}")
-def video_stream(filename: str):
-    video_path = os.path.join(UPLOAD_FOLDER, filename)
 
-    return StreamingResponse(generate_video_stream(video_path),
-                             media_type="multipart/x-mixed-replace; boundary=frame")
+UPLOAD_FOLDER = "backend/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+last_uploaded_video = None
 
 
-# 🚨 ALERT STATUS API
+@app.post("/upload/")
+async def upload_video(file: UploadFile = File(...)):
+    global last_uploaded_video
+
+    path = os.path.join(UPLOAD_FOLDER, file.filename)
+
+    with open(path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    last_uploaded_video = path
+
+    return {"message": "Uploaded"}
+
+
+# 🎥 PLAY UPLOADED VIDEO WITH DETECTION
+@app.get("/video")
+def video():
+    if last_uploaded_video is None:
+        return {"error": "No video uploaded"}
+
+    return StreamingResponse(
+        generate_stream(last_uploaded_video),
+        media_type="multipart/x-mixed-replace; boundary=frame"
+    )
+
+# 🚨 ALERT API
+
 @app.get("/alert")
 def get_alert():
     return alert_status

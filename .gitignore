@@ -1,0 +1,22 @@
+# Python virtual environment
+env/
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Uploaded videos
+uploads/
+backend/uploads/
+
+# Model files
+*.pt
+*.pth
+
+# Dataset
+dataset/
+
+# OS files
+.DS_Store

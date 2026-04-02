@@ -1,44 +1,113 @@
 body {
-    background: #0b132b;
-    color: white;
-    text-align: center;
-    font-family: Arial;
+    background: #0b132b; /* Dark Navy */
+    color: #edf2f4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 3fr 1fr; /* Main content vs Sidebar */
+    gap: 20px;
 }
 
-/* Top buttons */
+h1, h2, h3 { color: #00c2ff; margin-bottom: 10px; }
+
+/* Control Bar */
 .top-controls {
-    margin: 20px;
+    grid-column: 1 / span 2;
+    background: #1c2541;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
 }
 
 button {
-    padding: 12px 20px;
-    margin: 10px;
+    padding: 10px 25px;
     background: #00c2ff;
+    color: #0b132b;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
+    font-weight: bold;
     cursor: pointer;
+    transition: 0.3s;
 }
 
-/* VIDEO AT BOTTOM */
-.video-container {
-    width: 80%;
-    margin: 30px auto;
-    border: 3px solid #00c2ff;
-    border-radius: 10px;
-    padding: 10px;
+button:hover { background: #5dfdff; transform: translateY(-2px); }
+
+input[type="file"] { color: white; }
+
+/* Main Video Area */
+.main-monitor {
+    background: #1c2541;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #3a506b;
 }
 
-#videoStream {
+#stream {
     width: 100%;
-    height: auto;
+    border-radius: 10px;
+    border: 2px solid #00c2ff;
+    box-shadow: 0 0 20px rgba(0, 194, 255, 0.2);
 }
 
-/* ALERT BOX */
+/* Alert System */
 .alert-box {
-    width: 50%;
-    margin: 20px auto;
+    margin-top: 15px;
     padding: 15px;
-    border: 2px solid red;
-    border-radius: 10px;
-    font-size: 18px;
+    background: rgba(255, 0, 0, 0.1);
+    border: 2px solid #ff4d4d;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #ff4d4d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
+
+/* Sidebar (Attendance & Timeline) */
+.sidebar {
+    background: #1c2541;
+    padding: 20px;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#att {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+#att li {
+    padding: 8px;
+    border-bottom: 1px solid #3a506b;
+    font-size: 14px;
+}
+
+/* Snapshots Gallery */
+.snapshots {
+    grid-column: 1 / span 2;
+    background: #1c2541;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+#imgs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+#imgs img {
+    border-radius: 5px;
+    border: 1px solid #5dfdff;
+    transition: 0.2s;
+}
+
+#imgs img:hover { transform: scale(1.1); }

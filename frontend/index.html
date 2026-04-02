@@ -1,34 +1,654 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Exam Monitoring System</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Exam Monitor Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Barlow+Condensed:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:      #070b10;
+      --panel:   #0c1219;
+      --border:  #182030;
+      --cyan:    #00d4ff;
+      --green:   #00ff88;
+      --red:     #ff3056;
+      --yellow:  #ffcc00;
+      --orange:  #ff7830;
+      --muted:   #3a5068;
+      --text:    #b8ccd8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow Condensed', sans-serif;
+      min-height: 100vh;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      grid-template-rows: auto 1fr auto auto;
+      gap: 12px;
+    }
+
+    /* scanline overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px,
+        rgba(0,212,255,.018) 3px, rgba(0,212,255,.018) 4px);
+    }
+
+    /* ── HEADER ── */
+    header {
+      grid-column: 1 / -1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--cyan);
+      border-radius: 10px;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1.1rem;
+      color: var(--cyan);
+      letter-spacing: 3px;
+      white-space: nowrap;
+    }
+    .logo em { color: var(--green); font-style: normal; }
+
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    input[type="file"] {
+      background: transparent;
+      color: var(--muted);
+      font-size: .75rem;
+      border: 1px dashed var(--border);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      cursor: pointer;
+    }
+
+    button {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: .82rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 7px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: filter .15s, transform .15s;
+      white-space: nowrap;
+    }
+    button:hover { filter: brightness(1.25); transform: translateY(-1px); }
+
+    .btn-c { background: var(--cyan);   color: #000; }
+    .btn-g { background: var(--green);  color: #000; }
+    .btn-y { background: var(--yellow); color: #000; }
+    .btn-r { background: var(--red);    color: #fff; }
+
+    /* ── MAIN MONITOR ── */
+    .monitor {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #stream-wrap {
+      position: relative;
+      background: #000;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #stream {
+      width: 100%;
+      display: block;
+      border-radius: 7px;
+    }
+
+    #stream-placeholder {
+      position: absolute;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .8rem;
+      letter-spacing: 2px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #stream-status {
+      position: absolute;
+      top: 10px; left: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .7rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(0,0,0,.7);
+      color: var(--muted);
+      letter-spacing: 1px;
+      transition: all .3s;
+    }
+    #stream-status.live  { color: var(--green); border: 1px solid var(--green); }
+    #stream-status.alert { color: var(--red);   border: 1px solid var(--red); animation: blink 1s infinite; }
+
+    @keyframes blink { 50% { opacity: .4; } }
+
+    .alert-bar {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .82rem;
+      padding: 9px 14px;
+      border-radius: 7px;
+      border: 1px solid var(--red);
+      background: rgba(255,48,86,.07);
+      color: var(--red);
+      letter-spacing: 1px;
+      transition: all .3s;
+    }
+    .alert-bar.safe {
+      border-color: var(--green);
+      background: rgba(0,255,136,.05);
+      color: var(--green);
+    }
+
+    .chart-box { height: 120px; position: relative; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      flex: 1;
+    }
+
+    .panel-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .65rem;
+      letter-spacing: 3px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    #att { list-style: none; }
+    #att li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .88rem;
+    }
+    #att li:last-child { border-bottom: none; }
+
+    .s-name { color: var(--cyan); font-weight: 700; }
+    .s-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .s-badge.clean   { background: rgba(0,255,136,.1); color: var(--green); }
+    .s-badge.flagged { background: rgba(255,48,86,.15); color: var(--red); }
+
+    /* ── VIOLATIONS TABLE ── */
+    .violations {
+      grid-column: 1 / -1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .sec-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .tbl-wrap { overflow-x: auto; max-height: 220px; overflow-y: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .62rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-align: left;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0;
+      background: var(--panel);
+    }
+    td { padding: 7px 10px; border-bottom: 1px solid rgba(24,32,48,.6); }
+    tr:hover td { background: rgba(0,212,255,.03); }
+
+    .chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9px;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .chip-high   { background: rgba(255,48,86,.18);  color: var(--red);    border: 1px solid var(--red); }
+    .chip-low    { background: rgba(255,204,0,.12);  color: var(--yellow); border: 1px solid var(--yellow); }
+    .act-lbl     { color: var(--orange); font-family: 'IBM Plex Mono', monospace; font-size: .78rem; }
+    .from-lbl    { color: var(--cyan);   font-size: .82rem; }
+
+    /* ── SNAPSHOTS ── */
+    .snaps {
+      grid-column: 1 / -1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    #imgs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    #imgs img {
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      object-fit: cover;
+      transition: border-color .2s, transform .2s;
+      cursor: pointer;
+    }
+    #imgs img:hover { border-color: var(--cyan); transform: scale(1.04); }
+
+    .empty { color: var(--muted); font-size: .8rem; font-family: 'IBM Plex Mono', monospace; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
 </head>
 <body>
 
-    <h1>Exam Hall Monitoring System</h1>
+<!-- HEADER -->
+<header>
+  <div class="logo">AI<em>EXAM</em>MONITOR <span style="color:var(--muted);font-size:.65rem;letter-spacing:2px">PRO</span></div>
+  <div class="controls">
+    <button class="btn-c" onclick="startWebcam()">▶ Live Webcam</button>
+    <input type="file" id="file" accept="video/*">
+    <button class="btn-g" onclick="uploadVideo()">↑ Upload &amp; Process</button>
+    <button class="btn-y" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn-r" onclick="resetSession()">↺ Reset</button>
+  </div>
+</header>
 
-    <!-- TOP CONTROLS -->
-    <div class="top-controls">
-        <button onclick="startWebcam()">🎥 Live Webcam</button>
+<!-- MAIN MONITOR -->
+<main class="monitor">
+  <div id="stream-wrap">
+    <div id="stream-placeholder">◈ AWAITING FEED</div>
+    <div id="stream-status">● IDLE</div>
+    <!--
+      FIX: <img> src starts empty and display:none.
+           It is shown only after _showStream() succeeds.
+           MJPEG streams work natively in <img> — the browser handles
+           the multipart/x-mixed-replace boundary automatically.
+           No JS frame-polling is needed.
+    -->
+    <img id="stream" src="" alt="" style="display:none;">
+  </div>
 
-        <input type="file" id="videoFile">
-        <button onclick="uploadVideo()">📁 Upload Video</button>
-    </div>
+  <div id="alert" class="alert-bar">● SYSTEM INITIALIZING...</div>
 
-    <!-- MAIN VIDEO DISPLAY (BOTTOM) -->
-    <div class="video-container">
-        <img id="videoStream" />
-    </div>
+  <div class="chart-box">
+    <canvas id="chart"></canvas>
+  </div>
+</main>
 
-    <!-- ALERT PANEL -->
-    <div class="alert-box">
-        🚨 Alerts
-        <p id="alertText">No cheating detected</p>
-    </div>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="panel">
+    <div class="panel-label">Attendance &amp; Status</div>
+    <ul id="att">
+      <li><span class="empty">No students detected yet</span></li>
+    </ul>
+  </div>
+</aside>
 
-    <audio id="alarmSound" src="alarm.mp3"></audio>
+<!-- VIOLATIONS TABLE -->
+<section class="violations">
+  <div class="sec-hdr">
+    <div class="panel-label" style="margin:0">Violation Log</div>
+    <span id="viol-count" style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted)">0 incidents</span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>TIME</th><th>STUDENT</th><th>ACTION</th>
+          <th>COPYING FROM</th><th>SEVERITY</th><th>#</th>
+        </tr>
+      </thead>
+      <tbody id="viol-body">
+        <tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">No violations logged yet</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
-    <script src="script.js"></script>
+<!-- SNAPSHOTS -->
+<section class="snaps">
+  <div class="panel-label">Violation Snapshots</div>
+  <div id="imgs"><span class="empty">No snapshots yet</span></div>
+</section>
+
+<audio id="alarm" src="alarm.mp3" loop></audio>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const BASE = "http://127.0.0.1:8000";
+
+const streamImg    = document.getElementById("stream");
+const streamWrap   = document.getElementById("stream-wrap");
+const placeholder  = document.getElementById("stream-placeholder");
+const streamStatus = document.getElementById("stream-status");
+const alertBox     = document.getElementById("alert");
+const alarm        = document.getElementById("alarm");
+
+// Track current stream source so we can avoid re-setting the same URL
+let _currentStreamURL = "";
+// Watchdog: if no frame arrives within 8 s, mark as failed
+let _streamWatchdog = null;
+
+// ── Chart ────────────────────────────────────────────────────────────────────
+const chart = new Chart(
+  document.getElementById("chart").getContext("2d"), {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "Cheating events",
+        data: [],
+        borderColor: "#00d4ff",
+        backgroundColor: "rgba(0,212,255,0.06)",
+        fill: true, tension: 0.4, pointRadius: 3,
+        pointBackgroundColor: "#00d4ff",
+      }]
+    },
+    options: {
+      animation: false,
+      plugins: { legend: { labels: { color: "#3a5068", font: { size: 10 } } } },
+      scales: {
+        x: { ticks: { color: "#3a5068", font: { size: 9 } },
+             grid: { color: "rgba(255,255,255,.04)" } },
+        y: { beginAtZero: true, max: 1, ticks: { color: "#3a5068", stepSize: 1 },
+             grid: { color: "rgba(255,255,255,.04)" } }
+      }
+    }
+  }
+);
+
+// ── Stream helpers ────────────────────────────────────────────────────────────
+
+/**
+ * FIX — _showStream()
+ *
+ * MJPEG over multipart/x-mixed-replace is delivered as a continuous HTTP
+ * response.  Browsers handle it natively inside an <img> tag — the engine
+ * replaces the displayed bitmap each time a new JPEG part arrives.
+ *
+ * The original code attached onload to detect "stream is live", but onload
+ * fires only for the FIRST frame and then never again.  This means:
+ *   • streamStatus got stuck on "CONNECTING…" after the first frame.
+ *   • Switching from webcam → video (or vice-versa) while the same URL
+ *     was already set wouldn't restart the request.
+ *
+ * Fixes applied:
+ *   1. Force a fresh HTTP request by appending a cache-bust timestamp.
+ *      Without this the browser may serve the previous stream from cache.
+ *   2. Use onload only to detect "first frame received → mark as LIVE".
+ *      This is correct — onload fires once per new src assignment.
+ *   3. Add an onerror handler so a dead server is reported immediately.
+ *   4. A watchdog timer fires after 8 s if no successful load event
+ *      arrives — protects against silent hangs (webcam in use, etc.).
+ *   5. Guard against setting the same URL twice in a row (no-op if
+ *      the user clicks the same button while already streaming).
+ */
+function _showStream(url) {
+  const busted = `${url}?t=${Date.now()}`;
+
+  // Avoid re-triggering on identical URL (debounce double-click)
+  if (_currentStreamURL === busted) return;
+  _currentStreamURL = busted;
+
+  // Reset display state
+  streamImg.style.display   = "none";
+  placeholder.style.display = "flex";
+  placeholder.textContent   = "◈ CONNECTING...";
+  streamStatus.textContent  = "● CONNECTING...";
+  streamStatus.className    = "";
+
+  // Clear any existing watchdog
+  if (_streamWatchdog) { clearTimeout(_streamWatchdog); _streamWatchdog = null; }
+
+  // Watchdog: if no frame in 8 s, report error
+  _streamWatchdog = setTimeout(() => {
+    if (streamImg.style.display === "none") {
+      streamStatus.textContent  = "● TIMED OUT";
+      placeholder.textContent   = "⚠ NO FRAME RECEIVED — is app.py running?";
+    }
+  }, 8000);
+
+  // FIX: onload fires once when the *first* JPEG part of the MJPEG stream
+  // arrives.  That is enough to confirm the stream is live.
+  streamImg.onload = () => {
+    clearTimeout(_streamWatchdog);
+    _streamWatchdog           = null;
+    placeholder.style.display = "none";
+    streamImg.style.display   = "block";
+    streamStatus.textContent  = "● LIVE";
+    streamStatus.className    = "live";
+  };
+
+  // onerror fires if the HTTP request itself fails (404, network error, etc.)
+  streamImg.onerror = () => {
+    clearTimeout(_streamWatchdog);
+    _streamWatchdog           = null;
+    streamStatus.textContent  = "● CONNECTION FAILED";
+    streamStatus.className    = "";
+    placeholder.style.display = "flex";
+    placeholder.textContent   = "⚠ STREAM ERROR — is app.py running?";
+    _currentStreamURL         = "";  // allow retry
+  };
+
+  // Setting src triggers the browser to open a new HTTP connection.
+  // The multipart/x-mixed-replace content type keeps that connection
+  // open and the browser swaps the displayed frame on each new part.
+  streamImg.src = busted;
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+
+function startWebcam() {
+  // FIX: Reset _currentStreamURL so the cache-bust trick forces a fresh
+  // connection even if the user previously clicked "Live Webcam" and then
+  // came back to it (otherwise the same busted URL would be a no-op).
+  _currentStreamURL = "";
+  _showStream(`${BASE}/webcam`);
+}
+
+async function uploadVideo() {
+  const file = document.getElementById("file").files[0];
+  if (!file) { alert("Select a video file first!"); return; }
+
+  alertBox.textContent = "● UPLOADING...";
+  alertBox.className   = "alert-bar safe";
+
+  const fd = new FormData();
+  fd.append("file", file);
+
+  try {
+    const res  = await fetch(`${BASE}/upload/`, { method: "POST", body: fd });
+    const data = await res.json();
+
+    if (data.status === "Uploaded") {
+      alertBox.textContent = `● PROCESSING: ${data.filename}`;
+      // FIX: Only start the /video stream AFTER the server confirms the
+      // file is saved.  Also reset _currentStreamURL so a second upload
+      // of a different file always starts a fresh connection.
+      _currentStreamURL = "";
+      _showStream(`${BASE}/video`);
+    } else {
+      alertBox.textContent = "● UPLOAD FAILED";
+      alertBox.className   = "alert-bar";
+    }
+  } catch (e) {
+    alertBox.textContent = "● SERVER UNREACHABLE";
+    alertBox.className   = "alert-bar";
+    console.error(e);
+  }
+}
+
+function exportCSV() {
+  window.open(`${BASE}/export_csv`, "_blank");
+}
+
+async function resetSession() {
+  if (!confirm("Reset all session data?")) return;
+
+  // Stop the current stream by clearing the src
+  streamImg.src             = "";
+  streamImg.style.display   = "none";
+  placeholder.style.display = "flex";
+  placeholder.textContent   = "◈ AWAITING FEED";
+  streamStatus.textContent  = "● IDLE";
+  streamStatus.className    = "";
+  _currentStreamURL         = "";
+
+  await fetch(`${BASE}/reset`, { method: "POST" });
+  document.getElementById("att").innerHTML =
+    `<li><span class="empty">No students detected yet</span></li>`;
+  document.getElementById("viol-body").innerHTML =
+    `<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">No violations logged yet</td></tr>`;
+  document.getElementById("imgs").innerHTML =
+    `<span class="empty">No snapshots yet</span>`;
+  document.getElementById("viol-count").textContent = "0 incidents";
+  alertBox.textContent = "● SESSION RESET";
+  alertBox.className   = "alert-bar safe";
+}
+
+// ── Alert polling (1 s) ───────────────────────────────────────────────────────
+setInterval(async () => {
+  try {
+    const d = await (await fetch(`${BASE}/alert`)).json();
+    const t = new Date().toLocaleTimeString();
+
+    chart.data.labels.push(t);
+    chart.data.datasets[0].data.push(d.alert ? 1 : 0);
+    if (chart.data.labels.length > 30) {
+      chart.data.labels.shift();
+      chart.data.datasets[0].data.shift();
+    }
+    chart.update();
+
+    if (d.alert) {
+      alertBox.textContent   = `⚠ ${d.msg}`;
+      alertBox.className     = "alert-bar";
+      streamStatus.className = "alert";
+      alarm.play().catch(() => {});
+    } else {
+      alertBox.textContent = "✔ NO CHEATING DETECTED";
+      alertBox.className   = "alert-bar safe";
+      if (streamStatus.className === "alert") streamStatus.className = "live";
+      alarm.pause(); alarm.currentTime = 0;
+    }
+  } catch { /* server not ready yet */ }
+}, 1000);
+
+// ── Attendance + counts (3 s) ─────────────────────────────────────────────────
+setInterval(async () => {
+  try {
+    const [students, counts] = await Promise.all([
+      fetch(`${BASE}/attendance`).then(r => r.json()),
+      fetch(`${BASE}/student_counts`).then(r => r.json()),
+    ]);
+    const ul = document.getElementById("att");
+    if (!students.length) {
+      ul.innerHTML = `<li><span class="empty">No students detected yet</span></li>`;
+      return;
+    }
+    ul.innerHTML = students.map(s => {
+      const n = counts[s] || 0;
+      return `
+        <li>
+          <span class="s-name">${s}</span>
+          <span class="s-badge ${n === 0 ? 'clean' : 'flagged'}">
+            ${n === 0 ? '✔ Clean' : n + ' flag' + (n > 1 ? 's' : '')}
+          </span>
+        </li>`;
+    }).join("");
+  } catch { /* ignore */ }
+}, 3000);
+
+// ── Violations table (2 s) ────────────────────────────────────────────────────
+setInterval(async () => {
+  try {
+    const log  = await (await fetch(`${BASE}/violations`)).json();
+    const body = document.getElementById("viol-body");
+    document.getElementById("viol-count").textContent =
+      `${log.length} incident${log.length !== 1 ? 's' : ''}`;
+
+    if (!log.length) {
+      body.innerHTML = `<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">No violations logged yet</td></tr>`;
+      return;
+    }
+    body.innerHTML = [...log].reverse().map(v => `
+      <tr>
+        <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted)">${v.timestamp}</td>
+        <td style="color:var(--cyan);font-weight:700">${v.student}</td>
+        <td><span class="act-lbl">${v.action}</span></td>
+        <td><span class="from-lbl">${v.from_student !== '—' ? '← ' + v.from_student : '—'}</span></td>
+        <td><span class="chip chip-${v.severity.toLowerCase()}">${v.severity}</span></td>
+        <td style="font-family:'IBM Plex Mono',monospace;color:var(--orange)">${v.count}</td>
+      </tr>`).join("");
+  } catch { /* ignore */ }
+}, 2000);
+
+// ── Snapshots (4 s) ───────────────────────────────────────────────────────────
+setInterval(async () => {
+  try {
+    const imgs = await (await fetch(`${BASE}/cheat_images`)).json();
+    const div  = document.getElementById("imgs");
+    div.innerHTML = imgs.length
+      ? imgs.map(i =>
+          `<img src="${BASE}/backend/cheating_images/${i}?t=${Date.now()}"
+                width="110" height="80">`
+        ).join("")
+      : `<span class="empty">No snapshots yet</span>`;
+  } catch { /* ignore */ }
+}, 4000);
+</script>
 </body>
 </html>

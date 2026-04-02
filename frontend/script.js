@@ -1,54 +1,52 @@
-const img = document.getElementById("videoStream");
-const alertText = document.getElementById("alertText");
-const alarm = document.getElementById("alarmSound");
+const displayContainer = document.getElementById("display-container");
+const streamImg = document.getElementById("stream"); // The <img> for live feed
+const videoPlayer = document.getElementById("video-player"); // The <video> for uploads
+const alarm = document.getElementById("alarm");
 
-let alarmPlaying = false;
-
-// 🎥 Webcam
-function startWebcam() {
-    img.src = "http://127.0.0.1:8000/webcam";
+// 1. LIVE WEBCAM FIX
+function webcam() {
+    // Hide video player, show image for MJPEG stream
+    videoPlayer.style.display = "none";
+    streamImg.style.display = "block";
+    
+    // Add a cache-buster timestamp to force a fresh connection
+    streamImg.src = "http://127.0.0.1" + new Date().getTime();
 }
 
-// 📁 Upload Video
-async function uploadVideo() {
-    const fileInput = document.getElementById("videoFile");
-    const file = fileInput.files[0];
+// 2. UPLOAD & GENERATED VIDEO FIX
+async function upload() {
+    let fileInput = document.getElementById("file");
+    if (fileInput.files.length === 0) return alert("Select a file!");
 
-    if (!file) {
-        alert("Please select a video");
-        return;
-    }
+    let fd = new FormData();
+    // Use [0] to get the file object
+    fd.append("file", fileInput.files[0]); 
 
-    let formData = new FormData();
-    formData.append("file", file);
-
-    await fetch("http://127.0.0.1:8000/upload/", {
+    await fetch("http://127.0.0.1", {
         method: "POST",
-        body: formData
+        body: fd
     });
 
-    // ✅ SHOW PROCESSED VIDEO (NOT RAW FILE)
-    img.src = "http://127.0.0.1:8000/video";
+    // Change stream source
+    document.getElementById("stream").src = "http://127.0.0.1" + new Date().getTime();
 }
 
-// 🚨 REAL-TIME ALERT SYNC
+
+
+
+// Alert Polling (remains similar but wrapped in try/catch)
 setInterval(async () => {
-    const res = await fetch("http://127.0.0.1:8000/alert");
-    const data = await res.json();
+    try {
+        let r = await fetch("/alert");
+        let d = await r.json();
 
-    if (data.alert) {
-        alertText.innerText = "🚨 CHEATING DETECTED!";
-        
-        if (!alarmPlaying) {
+        if (d.alert) {
+            document.getElementById("alert").innerText = d.msg;
             alarm.play();
-            alarmPlaying = true;
+        } else {
+            document.getElementById("alert").innerText = "No cheating";
+            alarm.pause();
+            alarm.currentTime = 0;
         }
-
-    } else {
-        alertText.innerText = "No cheating detected";
-        alarm.pause();
-        alarm.currentTime = 0;
-        alarmPlaying = false;
-    }
-
+    } catch (e) { /* Backend might be busy */ }
 }, 1000);

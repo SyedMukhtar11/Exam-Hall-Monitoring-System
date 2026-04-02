@@ -1,0 +1,146 @@
+/* ── Base ── */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0b132b;
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+h1 {
+    font-size: 2rem;
+    color: #00c2ff;
+    text-shadow: 0 0 10px #00c2ff;
+    margin: 20px 0;
+}
+
+/* ── Top Controls ── */
+.top-controls {
+    margin: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+button {
+    padding: 12px 20px;
+    margin: 10px;
+    background: #00c2ff;
+    color: #0b132b;
+    font-weight: bold;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.1s;
+}
+
+button:hover {
+    background: #009fcc;
+    transform: scale(1.05);
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+input[type="file"] {
+    color: white;
+    background: #1a2540;
+    border: 1px solid #00c2ff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ── Video Container ── */
+.video-container {
+    width: 80%;
+    margin: 30px auto;
+    border: 3px solid #00c2ff;
+    border-radius: 10px;
+    padding: 10px;
+    background: #000;
+    box-shadow: 0 0 20px rgba(0, 194, 255, 0.3);
+}
+
+#videoStream {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px;
+}
+
+/* ── 🚨 Flashing Alert Banner ── */
+.alert-banner {
+    width: 80%;
+    margin: 10px auto;
+    background: #ff0000;
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: bold;
+    padding: 16px;
+    border-radius: 10px;
+    letter-spacing: 3px;
+    box-shadow: 0 0 30px #ff0000, 0 0 60px #ff000066;
+    animation: flash 0.8s infinite;
+}
+
+/* Hide banner when no alert */
+.alert-banner.hidden {
+    display: none;
+}
+
+/* Flashing animation */
+@keyframes flash {
+    0%   { opacity: 1;   background: #ff0000; box-shadow: 0 0 30px #ff0000; }
+    50%  { opacity: 0.3; background: #800000; box-shadow: none;             }
+    100% { opacity: 1;   background: #ff0000; box-shadow: 0 0 30px #ff0000; }
+}
+
+/* ── Alert Status Box ── */
+.alert-box {
+    width: 50%;
+    margin: 20px auto;
+    padding: 15px;
+    border: 2px solid red;
+    border-radius: 10px;
+    font-size: 18px;
+    background: #1a0a0a;
+    transition: border-color 0.3s, background 0.3s;
+}
+
+/* Green border when safe */
+.alert-box.safe {
+    border-color: #00ff88;
+    background: #0a1a0f;
+}
+
+/* Red border + glow when cheating */
+.alert-box.danger {
+    border-color: #ff0000;
+    background: #1a0a0a;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
+#alertText {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #00ff88;         /* default green */
+    transition: color 0.3s;
+}
+
+#alertCount {
+    font-size: 0.95rem;
+    color: #aaaaaa;
+    margin-top: 6px;
+}

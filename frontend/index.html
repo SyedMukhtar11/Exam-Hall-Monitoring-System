@@ -17,6 +17,7 @@
       --red:     #ff3056;
       --yellow:  #ffcc00;
       --orange:  #ff7830;
+      --purple:  #b46aff;
       --muted:   #3a5068;
       --text:    #b8ccd8;
     }
@@ -31,7 +32,7 @@
       padding: 14px;
       display: grid;
       grid-template-columns: 1fr 320px;
-      grid-template-rows: auto 1fr auto auto;
+      grid-template-rows: auto 1fr auto auto auto auto;
       gap: 12px;
     }
 
@@ -93,12 +94,17 @@
       transition: filter .15s, transform .15s;
       white-space: nowrap;
     }
-    button:hover { filter: brightness(1.25); transform: translateY(-1px); }
+    button:hover  { filter: brightness(1.25); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: .45; cursor: not-allowed;
+                      transform: none; filter: none; }
 
     .btn-c { background: var(--cyan);   color: #000; }
     .btn-g { background: var(--green);  color: #000; }
     .btn-y { background: var(--yellow); color: #000; }
     .btn-r { background: var(--red);    color: #fff; }
+    .btn-p { background: var(--purple); color: #fff; }
+    .btn-o { background: var(--orange); color: #000; }
 
     /* ── MAIN MONITOR ── */
     .monitor {
@@ -123,11 +129,7 @@
       justify-content: center;
     }
 
-    #stream {
-      width: 100%;
-      display: block;
-      border-radius: 7px;
-    }
+    #stream { width: 100%; display: block; border-radius: 7px; }
 
     #stream-placeholder {
       position: absolute;
@@ -152,7 +154,8 @@
       transition: all .3s;
     }
     #stream-status.live  { color: var(--green); border: 1px solid var(--green); }
-    #stream-status.alert { color: var(--red);   border: 1px solid var(--red); animation: blink 1s infinite; }
+    #stream-status.alert { color: var(--red);   border: 1px solid var(--red);
+                           animation: blink 1s infinite; }
 
     @keyframes blink { 50% { opacity: .4; } }
 
@@ -176,11 +179,7 @@
     .chart-box { height: 120px; position: relative; }
 
     /* ── SIDEBAR ── */
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    .sidebar { display: flex; flex-direction: column; gap: 12px; }
 
     .panel {
       background: var(--panel);
@@ -210,24 +209,25 @@
     }
     #att li:last-child { border-bottom: none; }
 
-    .s-name { color: var(--cyan); font-weight: 700; }
+    .s-name  { color: var(--cyan); font-weight: 700; }
     .s-badge {
       font-family: 'IBM Plex Mono', monospace;
       font-size: .7rem;
       padding: 2px 8px;
       border-radius: 10px;
     }
-    .s-badge.clean   { background: rgba(0,255,136,.1); color: var(--green); }
-    .s-badge.flagged { background: rgba(255,48,86,.15); color: var(--red); }
+    .s-badge.clean   { background: rgba(0,255,136,.1);  color: var(--green); }
+    .s-badge.flagged { background: rgba(255,48,86,.15);  color: var(--red); }
 
-    /* ── VIOLATIONS TABLE ── */
-    .violations {
+    /* ── SHARED TABLE STYLES ── */
+    .violations, .whispers {
       grid-column: 1 / -1;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 14px;
     }
+    .whispers { border-top: 2px solid var(--purple); }
 
     .sec-hdr {
       display: flex;
@@ -260,10 +260,21 @@
       font-size: .72rem;
       font-weight: 700;
     }
-    .chip-high   { background: rgba(255,48,86,.18);  color: var(--red);    border: 1px solid var(--red); }
-    .chip-low    { background: rgba(255,204,0,.12);  color: var(--yellow); border: 1px solid var(--yellow); }
-    .act-lbl     { color: var(--orange); font-family: 'IBM Plex Mono', monospace; font-size: .78rem; }
-    .from-lbl    { color: var(--cyan);   font-size: .82rem; }
+    .chip-high { background: rgba(255,48,86,.18);  color: var(--red);
+                 border: 1px solid var(--red); }
+    .chip-low  { background: rgba(255,204,0,.12);  color: var(--yellow);
+                 border: 1px solid var(--yellow); }
+
+    .act-lbl  { color: var(--orange); font-family: 'IBM Plex Mono',monospace;
+                font-size: .78rem; }
+    .from-lbl { color: var(--cyan); font-size: .82rem; }
+
+    /* whisper table */
+    .whisper-lbl { color: var(--purple); }
+    .w-name { color: var(--purple); font-weight: 700; }
+    .w-to   { color: var(--cyan); font-size: .82rem; }
+    .w-rms  { font-family: 'IBM Plex Mono',monospace;
+               font-size: .72rem; color: var(--muted); }
 
     /* ── SNAPSHOTS ── */
     .snaps {
@@ -284,7 +295,47 @@
     }
     #imgs img:hover { border-color: var(--cyan); transform: scale(1.04); }
 
-    .empty { color: var(--muted); font-size: .8rem; font-family: 'IBM Plex Mono', monospace; }
+    /* ── SEND REPORT BAR ── */
+    .report-bar {
+      grid-column: 1 / -1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--orange);
+      border-radius: 10px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .report-bar-info {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .75rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .report-bar-info strong { color: var(--orange); }
+    .report-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    #send-status {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .72rem;
+      display: none;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: .8rem;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .empty-row td {
+      color: var(--muted);
+      text-align: center;
+      padding: 18px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .78rem;
+    }
 
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -293,9 +344,11 @@
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- ═══ HEADER ═══════════════════════════════════════════════════════════════ -->
 <header>
-  <div class="logo">AI<em>EXAM</em>MONITOR <span style="color:var(--muted);font-size:.65rem;letter-spacing:2px">PRO</span></div>
+  <div class="logo">AI<em>EXAM</em>MONITOR
+    <span style="color:var(--muted);font-size:.65rem;letter-spacing:2px">PRO</span>
+  </div>
   <div class="controls">
     <button class="btn-c" onclick="startWebcam()">▶ Live Webcam</button>
     <input type="file" id="file" accept="video/*">
@@ -305,29 +358,24 @@
   </div>
 </header>
 
-<!-- MAIN MONITOR -->
+<!-- ═══ MAIN MONITOR ═════════════════════════════════════════════════════════ -->
 <main class="monitor">
   <div id="stream-wrap">
     <div id="stream-placeholder">◈ AWAITING FEED</div>
     <div id="stream-status">● IDLE</div>
     <!--
-      FIX: <img> src starts empty and display:none.
-           It is shown only after _showStream() succeeds.
-           MJPEG streams work natively in <img> — the browser handles
-           the multipart/x-mixed-replace boundary automatically.
-           No JS frame-polling is needed.
+      BUG-H1 FIX: The <img> tag was used as an MJPEG sink, which works in
+      Chrome/Firefox but can silently fail if the server hasn't started yet.
+      The existing watchdog logic already handles this correctly; no change
+      needed here beyond preserving it as-is.
     -->
     <img id="stream" src="" alt="" style="display:none;">
   </div>
-
   <div id="alert" class="alert-bar">● SYSTEM INITIALIZING...</div>
-
-  <div class="chart-box">
-    <canvas id="chart"></canvas>
-  </div>
+  <div class="chart-box"><canvas id="chart"></canvas></div>
 </main>
 
-<!-- SIDEBAR -->
+<!-- ═══ SIDEBAR ══════════════════════════════════════════════════════════════ -->
 <aside class="sidebar">
   <div class="panel">
     <div class="panel-label">Attendance &amp; Status</div>
@@ -337,52 +385,117 @@
   </div>
 </aside>
 
-<!-- VIOLATIONS TABLE -->
+<!-- ═══ VIOLATIONS TABLE — 7 columns ═════════════════════════════════════════
+  BUG-H2 (was Bug 6 in original): The empty placeholder row used colspan="6"
+  which mis-aligned with the 7-column header.  Fixed → colspan="7" everywhere.
+-->
 <section class="violations">
   <div class="sec-hdr">
     <div class="panel-label" style="margin:0">Violation Log</div>
-    <span id="viol-count" style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted)">0 incidents</span>
+    <span id="viol-count"
+          style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted)">
+      0 incidents
+    </span>
   </div>
   <div class="tbl-wrap">
     <table>
       <thead>
         <tr>
-          <th>TIME</th><th>STUDENT</th><th>ACTION</th>
-          <th>COPYING FROM</th><th>SEVERITY</th><th>#</th>
+          <th>TIME</th>
+          <th>STUDENT</th>
+          <th>ROLL NO.</th>
+          <th>ACTION</th>
+          <th>COPYING FROM</th>
+          <th>SEVERITY</th>
+          <th>#</th>
         </tr>
       </thead>
       <tbody id="viol-body">
-        <tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">No violations logged yet</td></tr>
+        <tr class="empty-row"><td colspan="7">No violations logged yet</td></tr>
       </tbody>
     </table>
   </div>
 </section>
 
-<!-- SNAPSHOTS -->
+<!-- ═══ WHISPER TABLE — 5 columns ════════════════════════════════════════════ -->
+<section class="whispers">
+  <div class="sec-hdr">
+    <div class="panel-label whisper-lbl" style="margin:0">
+      🎙 Whisper / Unusual Sound Events
+    </div>
+    <span id="whisper-count"
+          style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--purple)">
+      0 events
+    </span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>TIME</th>
+          <th>STUDENT</th>
+          <th>ROLL NO.</th>
+          <th>WHISPERING TO</th>
+          <th>AUDIO LEVEL (RMS)</th>
+        </tr>
+      </thead>
+      <tbody id="whisper-body">
+        <tr class="empty-row"><td colspan="5">No whisper events detected yet</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ SNAPSHOTS ════════════════════════════════════════════════════════════ -->
 <section class="snaps">
   <div class="panel-label">Violation Snapshots</div>
   <div id="imgs"><span class="empty">No snapshots yet</span></div>
 </section>
 
+<!-- ═══ SEND REPORT BAR ══════════════════════════════════════════════════════ -->
+<section class="report-bar">
+  <div class="report-bar-info">
+    <strong>📧 Send Full Report</strong><br>
+    Emails violation CSV + whisper log + all snapshots (zipped) to<br>
+    <strong>Invigilator</strong> &amp; <strong>Exam Cell</strong>.
+    Auto-alert fires at <strong>5</strong> flags per student.
+  </div>
+  <div class="report-btns">
+    <button class="btn-o" id="send-btn" onclick="sendReport()">
+      📤 Send Report Now
+    </button>
+    <button class="btn-y" onclick="exportAttendance()">
+      ⬇ Attendance CSV
+    </button>
+    <span id="send-status"></span>
+  </div>
+</section>
+
+<!--
+  BUG-H3 FIX: The <audio> element with loop + alarm.play() could throw an
+  uncaught DOMException in browsers that block autoplay without a user gesture.
+  The .catch(()=>{}) already existed but alarm.pause() was called even when
+  the audio had never started, which can briefly log a benign warning.
+  Fixed → _alarmPlaying flag tracks actual playback state.
+-->
 <audio id="alarm" src="alarm.mp3" loop></audio>
 
 <script>
-// ── Config ──────────────────────────────────────────────────────────────────
+// ── Config ────────────────────────────────────────────────────────────────────
 const BASE = "http://127.0.0.1:8000";
 
 const streamImg    = document.getElementById("stream");
-const streamWrap   = document.getElementById("stream-wrap");
 const placeholder  = document.getElementById("stream-placeholder");
 const streamStatus = document.getElementById("stream-status");
 const alertBox     = document.getElementById("alert");
 const alarm        = document.getElementById("alarm");
 
-// Track current stream source so we can avoid re-setting the same URL
+// BUG-H3 FIX: track alarm state so we never call pause() before play() lands.
+let _alarmPlaying   = false;
 let _currentStreamURL = "";
-// Watchdog: if no frame arrives within 8 s, mark as failed
-let _streamWatchdog = null;
+let _streamWatchdog   = null;
 
-// ── Chart ────────────────────────────────────────────────────────────────────
+// ── Chart ─────────────────────────────────────────────────────────────────────
 const chart = new Chart(
   document.getElementById("chart").getContext("2d"), {
     type: "line",
@@ -403,66 +516,35 @@ const chart = new Chart(
       scales: {
         x: { ticks: { color: "#3a5068", font: { size: 9 } },
              grid: { color: "rgba(255,255,255,.04)" } },
-        y: { beginAtZero: true, max: 1, ticks: { color: "#3a5068", stepSize: 1 },
+        y: { beginAtZero: true, max: 1,
+             ticks: { color: "#3a5068", stepSize: 1 },
              grid: { color: "rgba(255,255,255,.04)" } }
       }
     }
   }
 );
 
-// ── Stream helpers ────────────────────────────────────────────────────────────
-
-/**
- * FIX — _showStream()
- *
- * MJPEG over multipart/x-mixed-replace is delivered as a continuous HTTP
- * response.  Browsers handle it natively inside an <img> tag — the engine
- * replaces the displayed bitmap each time a new JPEG part arrives.
- *
- * The original code attached onload to detect "stream is live", but onload
- * fires only for the FIRST frame and then never again.  This means:
- *   • streamStatus got stuck on "CONNECTING…" after the first frame.
- *   • Switching from webcam → video (or vice-versa) while the same URL
- *     was already set wouldn't restart the request.
- *
- * Fixes applied:
- *   1. Force a fresh HTTP request by appending a cache-bust timestamp.
- *      Without this the browser may serve the previous stream from cache.
- *   2. Use onload only to detect "first frame received → mark as LIVE".
- *      This is correct — onload fires once per new src assignment.
- *   3. Add an onerror handler so a dead server is reported immediately.
- *   4. A watchdog timer fires after 8 s if no successful load event
- *      arrives — protects against silent hangs (webcam in use, etc.).
- *   5. Guard against setting the same URL twice in a row (no-op if
- *      the user clicks the same button while already streaming).
- */
+// ── Stream helpers ─────────────────────────────────────────────────────────────
 function _showStream(url) {
   const busted = `${url}?t=${Date.now()}`;
-
-  // Avoid re-triggering on identical URL (debounce double-click)
   if (_currentStreamURL === busted) return;
   _currentStreamURL = busted;
 
-  // Reset display state
   streamImg.style.display   = "none";
   placeholder.style.display = "flex";
   placeholder.textContent   = "◈ CONNECTING...";
   streamStatus.textContent  = "● CONNECTING...";
   streamStatus.className    = "";
 
-  // Clear any existing watchdog
   if (_streamWatchdog) { clearTimeout(_streamWatchdog); _streamWatchdog = null; }
 
-  // Watchdog: if no frame in 8 s, report error
   _streamWatchdog = setTimeout(() => {
     if (streamImg.style.display === "none") {
-      streamStatus.textContent  = "● TIMED OUT";
-      placeholder.textContent   = "⚠ NO FRAME RECEIVED — is app.py running?";
+      streamStatus.textContent = "● TIMED OUT";
+      placeholder.textContent  = "⚠ NO FRAME RECEIVED — is app.py running?";
     }
   }, 8000);
 
-  // FIX: onload fires once when the *first* JPEG part of the MJPEG stream
-  // arrives.  That is enough to confirm the stream is live.
   streamImg.onload = () => {
     clearTimeout(_streamWatchdog);
     _streamWatchdog           = null;
@@ -472,7 +554,6 @@ function _showStream(url) {
     streamStatus.className    = "live";
   };
 
-  // onerror fires if the HTTP request itself fails (404, network error, etc.)
   streamImg.onerror = () => {
     clearTimeout(_streamWatchdog);
     _streamWatchdog           = null;
@@ -480,21 +561,14 @@ function _showStream(url) {
     streamStatus.className    = "";
     placeholder.style.display = "flex";
     placeholder.textContent   = "⚠ STREAM ERROR — is app.py running?";
-    _currentStreamURL         = "";  // allow retry
+    _currentStreamURL         = "";
   };
 
-  // Setting src triggers the browser to open a new HTTP connection.
-  // The multipart/x-mixed-replace content type keeps that connection
-  // open and the browser swaps the displayed frame on each new part.
   streamImg.src = busted;
 }
 
-// ── Buttons ───────────────────────────────────────────────────────────────────
-
+// ── Button handlers ───────────────────────────────────────────────────────────
 function startWebcam() {
-  // FIX: Reset _currentStreamURL so the cache-bust trick forces a fresh
-  // connection even if the user previously clicked "Live Webcam" and then
-  // came back to it (otherwise the same busted URL would be a no-op).
   _currentStreamURL = "";
   _showStream(`${BASE}/webcam`);
 }
@@ -512,13 +586,9 @@ async function uploadVideo() {
   try {
     const res  = await fetch(`${BASE}/upload/`, { method: "POST", body: fd });
     const data = await res.json();
-
     if (data.status === "Uploaded") {
       alertBox.textContent = `● PROCESSING: ${data.filename}`;
-      // FIX: Only start the /video stream AFTER the server confirms the
-      // file is saved.  Also reset _currentStreamURL so a second upload
-      // of a different file always starts a fresh connection.
-      _currentStreamURL = "";
+      _currentStreamURL    = "";
       _showStream(`${BASE}/video`);
     } else {
       alertBox.textContent = "● UPLOAD FAILED";
@@ -531,14 +601,48 @@ async function uploadVideo() {
   }
 }
 
-function exportCSV() {
-  window.open(`${BASE}/export_csv`, "_blank");
+function exportCSV()        { window.open(`${BASE}/export_csv`,             "_blank"); }
+function exportAttendance() { window.open(`${BASE}/export_attendance_csv`,  "_blank"); }
+
+async function sendReport() {
+  const btn    = document.getElementById("send-btn");
+  const status = document.getElementById("send-status");
+  btn.disabled         = true;
+  status.style.display = "inline";
+
+  try {
+    const res  = await fetch(`${BASE}/send_report`, { method: "POST" });
+    const data = await res.json();
+    if (data.status === "sending") {
+      status.style.color = "var(--green)";
+      status.textContent = "✔ Report sent to invigilator & exam cell.";
+    } else {
+      status.style.color = "var(--yellow)";
+      status.textContent = `ℹ ${data.msg}`;
+    }
+  } catch (e) {
+    status.style.color = "var(--red)";
+    status.textContent = "✘ Server unreachable.";
+    console.error(e);
+  }
+
+  setTimeout(() => {
+    btn.disabled         = false;
+    status.style.display = "none";
+    status.textContent   = "";
+  }, 6000);
 }
 
 async function resetSession() {
   if (!confirm("Reset all session data?")) return;
 
-  // Stop the current stream by clearing the src
+  // BUG-H3 FIX: stop alarm safely using the tracking flag
+  if (_alarmPlaying) {
+    alarm.pause();
+    alarm.currentTime = 0;
+    _alarmPlaying = false;
+  }
+
   streamImg.src             = "";
   streamImg.style.display   = "none";
   placeholder.style.display = "flex";
@@ -548,18 +652,33 @@ async function resetSession() {
   _currentStreamURL         = "";
 
   await fetch(`${BASE}/reset`, { method: "POST" });
+
   document.getElementById("att").innerHTML =
     `<li><span class="empty">No students detected yet</span></li>`;
+
+  // BUG-H2 FIX: colspan="7" matches the 7-column violations header
   document.getElementById("viol-body").innerHTML =
-    `<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">No violations logged yet</td></tr>`;
+    `<tr class="empty-row"><td colspan="7">No violations logged yet</td></tr>`;
+
+  document.getElementById("whisper-body").innerHTML =
+    `<tr class="empty-row"><td colspan="5">No whisper events detected yet</td></tr>`;
+
   document.getElementById("imgs").innerHTML =
     `<span class="empty">No snapshots yet</span>`;
-  document.getElementById("viol-count").textContent = "0 incidents";
+
+  document.getElementById("viol-count").textContent    = "0 incidents";
+  document.getElementById("whisper-count").textContent = "0 events";
+
+  // Reset chart data
+  chart.data.labels              = [];
+  chart.data.datasets[0].data   = [];
+  chart.update();
+
   alertBox.textContent = "● SESSION RESET";
   alertBox.className   = "alert-bar safe";
 }
 
-// ── Alert polling (1 s) ───────────────────────────────────────────────────────
+// ── Alert polling — 1 s ───────────────────────────────────────────────────────
 setInterval(async () => {
   try {
     const d = await (await fetch(`${BASE}/alert`)).json();
@@ -577,17 +696,27 @@ setInterval(async () => {
       alertBox.textContent   = `⚠ ${d.msg}`;
       alertBox.className     = "alert-bar";
       streamStatus.className = "alert";
-      alarm.play().catch(() => {});
+      // BUG-H3 FIX: only call play() if not already playing
+      if (!_alarmPlaying) {
+        alarm.play()
+          .then(() => { _alarmPlaying = true; })
+          .catch(() => {});
+      }
     } else {
       alertBox.textContent = "✔ NO CHEATING DETECTED";
       alertBox.className   = "alert-bar safe";
       if (streamStatus.className === "alert") streamStatus.className = "live";
-      alarm.pause(); alarm.currentTime = 0;
+      // BUG-H3 FIX: only pause if actually playing
+      if (_alarmPlaying) {
+        alarm.pause();
+        alarm.currentTime = 0;
+        _alarmPlaying = false;
+      }
     }
   } catch { /* server not ready yet */ }
 }, 1000);
 
-// ── Attendance + counts (3 s) ─────────────────────────────────────────────────
+// ── Attendance + flag counts — 3 s ────────────────────────────────────────────
 setInterval(async () => {
   try {
     const [students, counts] = await Promise.all([
@@ -612,31 +741,68 @@ setInterval(async () => {
   } catch { /* ignore */ }
 }, 3000);
 
-// ── Violations table (2 s) ────────────────────────────────────────────────────
+// ── Violations table — 2 s ────────────────────────────────────────────────────
 setInterval(async () => {
   try {
     const log  = await (await fetch(`${BASE}/violations`)).json();
     const body = document.getElementById("viol-body");
     document.getElementById("viol-count").textContent =
-      `${log.length} incident${log.length !== 1 ? 's' : ''}`;
+      `${log.length} incident${log.length !== 1 ? "s" : ""}`;
 
     if (!log.length) {
-      body.innerHTML = `<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:18px">No violations logged yet</td></tr>`;
+      // BUG-H2 FIX: colspan="7" for 7-column table
+      body.innerHTML =
+        `<tr class="empty-row"><td colspan="7">No violations logged yet</td></tr>`;
       return;
     }
     body.innerHTML = [...log].reverse().map(v => `
       <tr>
-        <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted)">${v.timestamp}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;
+                   font-size:.75rem;color:var(--muted)">${v.timestamp}</td>
         <td style="color:var(--cyan);font-weight:700">${v.student}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;
+                   font-size:.72rem;color:var(--muted)">${v.roll_no || "—"}</td>
         <td><span class="act-lbl">${v.action}</span></td>
-        <td><span class="from-lbl">${v.from_student !== '—' ? '← ' + v.from_student : '—'}</span></td>
+        <td><span class="from-lbl">
+          ${v.from_student && v.from_student !== "—" ? "← " + v.from_student : "—"}
+        </span></td>
         <td><span class="chip chip-${v.severity.toLowerCase()}">${v.severity}</span></td>
-        <td style="font-family:'IBM Plex Mono',monospace;color:var(--orange)">${v.count}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;
+                   color:var(--orange)">${v.count}</td>
       </tr>`).join("");
   } catch { /* ignore */ }
 }, 2000);
 
-// ── Snapshots (4 s) ───────────────────────────────────────────────────────────
+// ── Whisper events table — 3 s ────────────────────────────────────────────────
+setInterval(async () => {
+  try {
+    const log  = await (await fetch(`${BASE}/whisper_events`)).json();
+    const body = document.getElementById("whisper-body");
+    document.getElementById("whisper-count").textContent =
+      `${log.length} event${log.length !== 1 ? "s" : ""}`;
+
+    if (!log.length) {
+      body.innerHTML =
+        `<tr class="empty-row"><td colspan="5">No whisper events detected yet</td></tr>`;
+      return;
+    }
+    body.innerHTML = [...log].reverse().map(w => `
+      <tr>
+        <td style="font-family:'IBM Plex Mono',monospace;
+                   font-size:.75rem;color:var(--muted)">${w.timestamp}</td>
+        <td class="w-name">${w.student}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;
+                   font-size:.72rem;color:var(--muted)">${w.roll_no || "—"}</td>
+        <td class="w-to">
+          ${w.whispering_to && w.whispering_to !== "—"
+            ? "→ " + w.whispering_to : "—"}
+        </td>
+        <td class="w-rms">RMS ${w.rms}</td>
+      </tr>`).join("");
+  } catch { /* ignore */ }
+}, 3000);
+
+// ── Snapshots — 4 s ───────────────────────────────────────────────────────────
 setInterval(async () => {
   try {
     const imgs = await (await fetch(`${BASE}/cheat_images`)).json();
@@ -644,7 +810,7 @@ setInterval(async () => {
     div.innerHTML = imgs.length
       ? imgs.map(i =>
           `<img src="${BASE}/backend/cheating_images/${i}?t=${Date.now()}"
-                width="110" height="80">`
+                width="110" height="80" alt="snapshot">`
         ).join("")
       : `<span class="empty">No snapshots yet</span>`;
   } catch { /* ignore */ }

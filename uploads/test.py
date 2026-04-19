@@ -5,12 +5,9 @@ import os
 # --- 1. SETUP & MODEL LOADING ---
 # Use a raw string (r"") to handle Windows backslashes correctly
 MODEL_PATH = r"C:\Users\syedm\OneDrive\Desktop\TechNova1\best1.pt"
-VIDEO_PATH = "test6.mp4"
+VIDEO_PATH = "test10.mp4"
 
-# Load the model
-if not os.path.exists(MODEL_PATH):
-    print(f"Error: Model file not found at {MODEL_PATH}")
-    exit()
+# Load the modelq
 
 model = YOLO(MODEL_PATH)
 
@@ -27,7 +24,7 @@ CLASS_COLORS = {
 }
 
 # --- 3. VIDEO PROCESSING ---
-cap = cv2.VideoCapture("test8.mp4")
+cap = cv2.VideoCapture("test12.mp4")
 
 if not cap.isOpened():
     print(f"Error: Could not open video {VIDEO_PATH}")
